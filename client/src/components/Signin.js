@@ -13,14 +13,19 @@ import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { backgrounds } from "../assets/backgrounds";
+import { IconButton, InputAdornment } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-function SignIn() {
+function SignIn(props) {
+  const { handleSnackBar } = props;
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
   const [error, setError] = useState(null);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   useEffect(() => {
     localStorage.removeItem("token");
@@ -28,6 +33,11 @@ function SignIn() {
     setBackgroundIndex(randomIndex);
   }, []);
   const navigate = useNavigate();
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -39,27 +49,31 @@ function SignIn() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (formData.username && formData.password) {
-      try {
-        const response = await fetch("http://localhost:5000/api/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem("token", data.token);
-          navigate("/feed");
-        } else {
-          console.error("Login failed");
-        }
-      } catch (error) {
-        console.error("Error:", error);
+    try {
+      const response = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", formData.username);
+        handleSnackBar(true, "Logged in successfully", "success");
+        navigate("/feed");
+      } else {
+        const errorData = await response.json();
+        handleSnackBar(true, `Login failed: ${errorData.error}`, "error");
+        console.error("Login failed:", errorData.error);
       }
-    } else {
-      setError("Please enter username and password");
+    } catch (error) {
+      handleSnackBar(
+        true,
+        "An unexpected error occurred. Please try again later.",
+        "error"
+      );
     }
   };
 
@@ -81,9 +95,20 @@ function SignIn() {
                 : t.palette.grey[900],
             backgroundSize: "cover",
             backgroundPosition: "center",
+            display: "block",
+            sm: "none",
           }}
         />
-        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+        <Grid
+          item
+          xs={12}
+          sm={8}
+          md={5}
+          component={Paper}
+          elevation={6}
+          square
+          sx={{ display: "flex", flexDirection: "column" }}
+        >
           <Box
             sx={{
               my: 8,
@@ -91,6 +116,8 @@ function SignIn() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
             }}
           >
             <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
@@ -101,9 +128,8 @@ function SignIn() {
             </Typography>
             <Box
               component="form"
-              noValidate
               onSubmit={handleSubmit}
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, width: "100%" }}
             >
               <TextField
                 margin="normal"
@@ -123,13 +149,32 @@ function SignIn() {
                 fullWidth
                 name="password"
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <Visibility /> : <VisibilityOff />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
-              {error && <Typography color="error">{error}</Typography>}
+
+              {error && (
+                <p style={{ fontSize: "12px", color: "red", margin: 0 }}>
+                  **{error}**
+                </p>
+              )}
               <Button
                 type="submit"
                 fullWidth

@@ -5,7 +5,7 @@ export const backgroundColors = [
   },
   {
     background: "mauve",
-    text: "black",
+    text: "white",
   },
   {
     background: "pink",
@@ -41,7 +41,7 @@ export const backgroundColors = [
   },
   {
     background: "#009B77",
-    text: "black",
+    text: "white",
   },
   {
     background: "#DD4124",

@@ -6,17 +6,42 @@ import { Chip, CircularProgress } from "@mui/material";
 import FormatQuoteIcon from "@mui/icons-material/FormatQuote";
 import { backgroundColors } from "../assets/colors";
 import gif from "../assets/Like.gif";
+import likeSound from "../assets/likeSound.mp3";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { names } from "../assets/names";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 
-export default function Feed() {
+export default function Feed(props) {
+  const { handleSnackBar } = props;
   const [likedPost, setLikedPost] = useState(null);
   const [liked, setLiked] = useState({});
   const token = localStorage.getItem("token");
+  const username = localStorage.getItem("user");
   const [allPosts, setAllPosts] = useState([]);
-  const [totalCount, setTotalCount] = useState(0); // Track the total number of posts fetched
-  const [loading, setLoading] = useState(false); // Track loading state
+  const [totalCount, setTotalCount] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    setDialogOpen(true);
+  };
+
+  const logoutAndCloseDialog = () => {
+    localStorage.removeItem("token");
+    handleSnackBar(true, "Logged out successfully", "info");
+    window.location.reload();
+  };
+
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const bottomOfPageRef = useRef(null);
-
+  const audioRef = useRef(new Audio(likeSound));
   useEffect(() => {
     if (token) {
       getAllPosts();
@@ -31,25 +56,25 @@ export default function Feed() {
   }, [allPosts]);
 
   const getAllPosts = async () => {
-    setLoading(true); // Set loading to true when making API call
+    setLoading(true);
     axios({
       method: "GET",
-      url: `https://dummyjson.com/posts?_limit=30`, // Fetch only 30 posts initially
+      url: `https://dummyjson.com/posts?_limit=30`,
     })
       .then((response) => {
         setAllPosts(response.data.posts);
-        setTotalCount(response.data.totalCount); // Set the total count of posts
+        setTotalCount(response.data.totalCount);
       })
       .catch((error) => {
         console.log(error);
       })
       .finally(() => {
-        setLoading(false); // Set loading to false when API call completes
+        setLoading(false);
       });
   };
 
   const loadMorePosts = async () => {
-    setLoading(true); // Set loading to true when making API call
+    setLoading(true);
     const nextPage = Math.ceil(allPosts.length / 30) + 1; // Calculate the next page number
     try {
       const response = await axios.get(
@@ -59,7 +84,7 @@ export default function Feed() {
     } catch (error) {
       console.log(error);
     } finally {
-      setLoading(false); // Set loading to false when API call completes
+      setLoading(false);
     }
   };
 
@@ -76,9 +101,10 @@ export default function Feed() {
         ...prevLiked,
         [postId]: true,
       }));
+      audioRef.current.play();
       setTimeout(() => {
         setLikedPost(null);
-      }, 2000);
+      }, 1900);
     }
   };
 
@@ -95,68 +121,142 @@ export default function Feed() {
     <>
       {token && (
         <div className="mainContainer">
-          {allPosts.map((post, i) => (
-            <div key={post.id} className="eachPostCard">
-              {likedPost === post.id && (
-                <img src={gif} alt="likeGif" className="gif" />
-              )}
-              <div
-                className="titleAndContent"
-                style={{
-                  background:
-                    backgroundColors[i % backgroundColors.length].background,
-                  color: backgroundColors[i % backgroundColors.length].text,
-                }}
-              >
-                <h2 className="title">
-                  <FormatQuoteIcon
-                    style={{
-                      transform: "rotate(180deg)",
-                      marginBottom: "8px",
-                    }}
-                  />
-                  {post.title}
-                  <FormatQuoteIcon
-                    style={{
-                      marginBottom: "8px",
-                    }}
-                  />
-                </h2>
-                <p className="body">{post.body}</p>
-              </div>
-              <div className="tags">
-                Tags: &nbsp;
-                {post.tags.map((tag) => (
-                  <Chip label={tag} className="chips" key={tag} />
-                ))}
-              </div>
-              <p className="reactions">
-                Reactions: {post.reactions}
-                {liked[post.id] ? (
-                  <span
-                    className="likeText"
-                    onClick={() => handleLike(post.id)}
-                  >
-                    LIKED
-                  </span>
-                ) : (
-                  <span
-                    className="likeText"
-                    onClick={() => handleLike(post.id)}
-                  >
-                    LIKE THIS POST
-                  </span>
+          <div className="headerAndOptions">
+            <p style={{ fontSize: "2.5vw", color: "white", textAlign: "left" }}>
+              Welcome, <span style={{ fontWeight: 550 }}>{username}!</span>
+            </p>
+            <p
+              style={{ fontSize: "1.5vw" }}
+              className="optionsButton"
+              onClick={handleLogout}
+            >
+              {" "}
+              <LogoutIcon style={{ marginRight: "0.5vw", fontSize: "1.5vw" }} />
+              Logout
+            </p>
+          </div>
+          {allPosts.map((post, i) => {
+            return (
+              <div key={post.id} className="eachPostCard">
+                {likedPost === post.id && (
+                  <img src={gif} alt="likeGif" className="gif" />
                 )}
-              </p>
-            </div>
-          ))}
+                <div
+                  className="titleAndContent"
+                  style={{
+                    background:
+                      backgroundColors[i % backgroundColors.length].background,
+                    color: backgroundColors[i % backgroundColors.length].text,
+                  }}
+                >
+                  <h2
+                    className="title"
+                    style={{ fontSize: "2.5vw", marginBottom: "0.5vw" }}
+                  >
+                    <FormatQuoteIcon
+                      style={{
+                        fontSize: "1.5vw",
+                        transform: "rotate(180deg)",
+                        marginBottom: "8px",
+                      }}
+                    />
+                    {post.title}
+                    <FormatQuoteIcon
+                      style={{
+                        fontSize: "1.5vw",
+                        marginBottom: "8px",
+                      }}
+                    />
+                  </h2>
+                  <p
+                    className="body"
+                    style={{ fontSize: "1.1vw", lineHeight: "2vw" }}
+                  >
+                    {post.body}
+                  </p>
+                </div>
+                <div className="tags" style={{ fontSize: "1.2vw" }}>
+                  Tags: &nbsp;
+                  {post.tags.map((tag, i) => (
+                    <p
+                      key={i}
+                      style={{
+                        fontSize: "1vw",
+                        backgroundColor: "silver",
+                        padding: "0.2vw 0.5vw",
+                        marginInline: "0.5vw",
+                        borderRadius: "10px",
+                      }}
+                    >
+                      {tag}
+                    </p>
+                  ))}
+                </div>
+                <div className="reactionAndLike">
+                  <p className="reactions" style={{ fontSize: "1.1vw" }}>
+                    By {names[i].name} -{" "}
+                    <span style={{ fontSize: "1.1vw", color: "gray" }}>
+                      {names[i].date.toLocaleDateString()}
+                    </span>
+                  </p>
+                  {liked[post.id] ? (
+                    <span
+                      className="likeText"
+                      onClick={() => handleLike(post.id)}
+                    >
+                      LIKED
+                    </span>
+                  ) : (
+                    <span
+                      className="likeText"
+                      onClick={() => handleLike(post.id)}
+                    >
+                      LIKE THIS POST
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
           {loading && (
-            <CircularProgress
-              style={{ margin: "20px auto", display: "block" }}
-            />
+            <CircularProgress size={70} style={{ marginTop: "10vw" }} />
           )}{" "}
-          {/* Render loader when loading is true */}
           <div ref={bottomOfPageRef} />
+          <Dialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Confirmation Logout"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Are you sure you want to logout?
+              </DialogContentText>
+            </DialogContent>
+            <div style={{ marginLeft: "60%", marginBottom: "1.2vw" }}>
+              <Button
+                variant="outlined"
+                onClick={() => setDialogOpen(false)}
+                color="error"
+                style={{ marginRight: "1.2vw", fontWeight: "500" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={logoutAndCloseDialog}
+                color="primary"
+                style={{ fontWeight: "500" }}
+              >
+                Logout
+              </Button>
+            </div>
+          </Dialog>
         </div>
       )}
     </>

@@ -3,35 +3,60 @@
   font-family: "Poppins", sans-serif;
 }
 .mainContainer {
-  width: 96.5vw;
+  max-width: 97vw;
   padding: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: linear-gradient(to right, #4e66ffad, #92effd);
+  min-height: 100vh;
+  padding-right: 1.5vw;
+  overflow-x: hidden !important;
+}
+.headerAndOptions {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+.optionsButton {
+  font-size: 15px;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+}
+.optionsButton:hover {
+  background-color: #8080802c;
 }
 .eachPostCard {
-  width: 60vw;
-  box-shadow: 0px 0px 10px #00000051;
-  border-radius: 15px;
-  margin-block: 2vw;
+  width: 70vw;
+  box-shadow: 0px 0px 15px #00000076;
+  border-radius: 2vw;
+  margin-block: 3vw;
   display: flex;
   text-align: left;
   flex-direction: column;
   align-items: flex-start;
-  padding-bottom: 1.2vw;
+  padding-bottom: 2vw;
   background-color: white;
   position: relative;
+  transition: transform 0.2s ease;
+}
+.eachPostCard:hover {
+  transform: scale(1.08);
 }
 .gif {
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: 80px;
+  width: 100px;
   transform: translate(-50%, -50%);
   z-index: 1;
 }
 .titleAndContent {
-  border-radius: 15px 15px 0px 0px;
+  border-radius: 1.5vw 1.5vw 0px 0px;
   background-color: #a3a3ca;
   padding: 2vw;
   color: black;
@@ -59,15 +84,26 @@
 .chips {
   margin-inline: 0.2vw;
 }
+.reactionAndLike {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .reactions {
   margin: 0px;
   margin-left: 1.9vw;
 }
 .likeText {
-  margin-left: 39vw;
-  margin-right: 0px;
-  font-size: 17px;
+  margin-right: 1.9vw;
+  font-size: 1.2vw;
   color: #0000ff;
   font-weight: 550;
   cursor: pointer;
+  padding: 0.2vw 1vw;
+}
+.likeText:hover {
+  background-color: #92effd3d;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px #67a8b2;
 }
