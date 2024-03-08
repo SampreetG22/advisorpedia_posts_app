@@ -231,7 +231,7 @@ export default function Feed(props) {
             fullWidth
           >
             <DialogTitle id="alert-dialog-title">
-              {"Confirmation Logout"}
+              {"Logout Confirmation"}
             </DialogTitle>
             <DialogContent>
               <DialogContentText id="alert-dialog-description">

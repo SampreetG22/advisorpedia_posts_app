@@ -96,15 +96,6 @@ app.post("/user", async (req, res) => {
   }
 });
 
-app.get("/posts", (req, res) => {
-  res.json({
-    posts: [
-      { _id: 1, title: "Post 1" },
-      { _id: 2, title: "Post 2" },
-    ],
-  });
-});
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
