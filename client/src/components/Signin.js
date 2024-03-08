@@ -13,9 +13,10 @@ import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { backgrounds } from "../assets/backgrounds";
-import { IconButton, InputAdornment } from "@mui/material";
+import { Dialog, IconButton, InputAdornment } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import axios from "axios";
 
 function SignIn(props) {
   const { handleSnackBar } = props;
@@ -26,19 +27,20 @@ function SignIn(props) {
   const [error, setError] = useState(null);
   const [backgroundIndex, setBackgroundIndex] = useState(0);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [passwordResetDialog, setPasswordResetDialog] = useState(false)
+  const [sendEmail, setSendEmail] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     localStorage.removeItem("token");
     const randomIndex = Math.floor(Math.random() * backgrounds.length);
     setBackgroundIndex(randomIndex);
   }, []);
-  const navigate = useNavigate();
-
+  
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
-
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData({
@@ -46,7 +48,6 @@ function SignIn(props) {
       [name]: value,
     });
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
@@ -74,6 +75,15 @@ function SignIn(props) {
         "An unexpected error occurred. Please try again later.",
         "error"
       );
+    }
+  };
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post("http://localhost:5000/forgot-password", { sendEmail });
+      handleSnackBar(true, "Password reset email sent successfully", 'success')
+    } catch (error) {
+      handleSnackBar(true, error.response.data.error, 'error')
     }
   };
 
@@ -185,7 +195,7 @@ function SignIn(props) {
               </Button>
               <Grid container>
                 <Grid item xs>
-                  <Link href="#" variant="body2">
+                  <Link href="#" variant="body2" onClick={() => setPasswordResetDialog(true)}>
                     Forgot password?
                   </Link>
                 </Grid>
@@ -199,6 +209,44 @@ function SignIn(props) {
           </Box>
         </Grid>
       </Grid>
+      <Dialog fullWidth maxWidth="sm" open={passwordResetDialog}>
+        <h4 style={{marginLeft:"5%", marginBottom:"5%"}}>Reset password</h4>
+        <form
+          onSubmit={handlePasswordReset}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems:"center",
+            width: "50%",
+            marginLeft: "24%"
+          }}
+        >
+          <TextField
+            id="outlined-basic"
+            label="Enter your email"
+            variant="outlined"
+            value={sendEmail}
+            style={{width:'130%', marginBottom:"5%"}}
+            onChange={(e) => setSendEmail(e.target.value)}
+          />
+          <div style={{display:"flex",alignItems:"center"}}>
+            <Button
+              variant="contained"
+              color="error"
+              type="button"
+              onClick={() => setPasswordResetDialog(false)}
+              style={{margin:"1.5vw", width:"10vw", fontSize:"0.8vw"}}>Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              style={{margin:"1.5vw", width:"11vw", fontSize:"0.8vw"}}>Send Reset Email
+            </Button>
+          </div>
+          
+        </form>
+      </Dialog>
     </ThemeProvider>
   );
 }

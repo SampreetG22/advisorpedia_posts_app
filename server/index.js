@@ -5,6 +5,7 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
+const nodemailer = require("nodemailer");
 const app = express();
 // Middleware
 app.use(cors());
@@ -102,6 +103,52 @@ app.get("/posts", (req, res) => {
       { _id: 2, title: "Post 2" },
     ],
   });
+});
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "nan122111997@gmail.com",
+    pass: process.env.PASSWORD,
+  },
+});
+
+const sendPasswordResetEmail = async (email, token) => {
+const mailOptions = {
+    from: "nani22111997@gmail.com",
+    to: email,
+    subject: "Password Reset",
+    text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n`
+          + `Please click on the following link, or paste this into your browser to complete the process:\n\n`
+          + `http://localhost:5000/reset-password/${token}\n\n`
+          + `If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Password reset email sent");
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw error; // Throw the error to handle it in the calling function
+  }
+}
+
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "1h" });
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000;
+    await user.save();
+    await sendPasswordResetEmail(email, token);
+    res.json({ success: true, message: "Password reset email sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 const PORT = process.env.PORT || 5000;

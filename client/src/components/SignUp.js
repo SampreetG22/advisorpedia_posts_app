@@ -230,7 +230,7 @@ export default function Signup(props) {
               color="primary"
               onChange={(event) => setChecked(!checked)}
             />
-            <label htmlFor="checkBox" className="text-sm">
+            <label htmlFor="checkBox" className="text-sm" style={{fontSize:"1vw"}}>
               I read all{" "}
               <Link href="#" className="text-blue-500">
                 terms and conditions
